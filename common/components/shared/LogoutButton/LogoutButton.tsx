@@ -1,5 +1,6 @@
 "use client";
 
+import { ACCESS_TOKEN_COOKIE } from "@/common/constants/shared/constants";
 import { logout as logoutRequest } from "@/common/rest-api-calls/application/accounts";
 import userStore from "@/common/stores/application/user-store";
 import { queryClient } from "@/lib/query-client";
@@ -15,6 +16,7 @@ export async function performLogout(): Promise<void> {
   } catch {
     // Cookie is cleared server-side even if the request fails; continue locally.
   }
+  document.cookie = `${ACCESS_TOKEN_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
   userStore.update.user(undefined);
   queryClient.clear();
 }
@@ -29,7 +31,6 @@ export function LogoutButton({
   className?: string;
   children?: React.ReactNode;
 }) {
-  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
   /**
@@ -41,7 +42,7 @@ export function LogoutButton({
     }
     setIsPending(true);
     await performLogout();
-    router.replace("/login");
+    window.location.href = "/login";
   };
 
   return (

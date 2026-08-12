@@ -19,4 +19,6 @@ export type AuthCredentials = {
 /** Signup / login success payload after HTTP unwrap. */
 export type AuthSuccessData = {
   user: User;
+  token?: string;
+  accessToken?: string;
 };
