@@ -8,10 +8,10 @@ import { Controller, useForm } from "react-hook-form";
 import { DatePicker } from "@/common/components/shared/DatePicker/DatePicker";
 import { MoneyText } from "@/common/components/shared/MoneyText/MoneyText";
 import { ApiError } from "@/common/http";
-import { addOrderPayment } from "@/common/rest-api-calls/application/orders";
+import { addOrderRefund } from "@/common/rest-api-calls/application/orders";
 import type { OrderDetail } from "@/common/types/application/orders";
-import { formatUsd } from "@/common/utils/money";
 import { todayUtcDateInput } from "@/common/utils/date";
+import { formatUsd } from "@/common/utils/money";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { queryClient } from "@/lib/query-client";
+import { queries } from "@/lib/queries";
 import {
   patchOrderInLists,
   setOrderDetailCache,
@@ -38,13 +40,11 @@ import {
   paymentFormSchema,
   type PaymentFormValues,
 } from "@/modules/Orders/payment-form-schema";
-import { queryClient } from "@/lib/query-client";
-import { queries } from "@/lib/queries";
 
 /**
- * Record-payment dialog. Mints one Idempotency-Key per unique payload.
+ * Record-refund dialog. Mints one Idempotency-Key per unique payload.
  */
-export function RecordPaymentDialog({
+export function RecordRefundDialog({
   open,
   onOpenChange,
   order,
@@ -60,7 +60,7 @@ export function RecordPaymentDialog({
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
-      amount: order.amountDue,
+      amount: order.amountPaid,
       date: todayUtcDateInput(),
       note: "",
     },
@@ -74,7 +74,7 @@ export function RecordPaymentDialog({
       values: PaymentFormValues;
       idempotencyKey: string;
     }) =>
-      addOrderPayment(
+      addOrderRefund(
         order._id,
         {
           amount: values.amount,
@@ -101,7 +101,7 @@ export function RecordPaymentDialog({
   });
 
   /**
-   * Submits the payment, reusing the idempotency key when the payload is unchanged.
+   * Submits the refund, reusing the idempotency key when the payload is unchanged.
    */
   const onSubmit = form.handleSubmit((values) => {
     const payloadKey = JSON.stringify({
@@ -126,17 +126,17 @@ export function RecordPaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Record payment</DialogTitle>
+          <DialogTitle>Record refund</DialogTitle>
           <DialogDescription>
-            Maximum allowed: <MoneyText amount={order.amountDue} />
+            Maximum allowed: <MoneyText amount={order.amountPaid} />
           </DialogDescription>
         </DialogHeader>
-        <form id="record-payment-form" onSubmit={onSubmit}>
+        <form id="record-refund-form" onSubmit={onSubmit}>
           <FieldGroup>
             <Field data-invalid={!!form.formState.errors.amount || undefined}>
-              <FieldLabel htmlFor="payment-amount">Amount</FieldLabel>
+              <FieldLabel htmlFor="refund-amount">Amount</FieldLabel>
               <Input
-                id="payment-amount"
+                id="refund-amount"
                 type="number"
                 min={0.01}
                 step={0.01}
@@ -145,13 +145,13 @@ export function RecordPaymentDialog({
               <FieldError errors={[form.formState.errors.amount]} />
             </Field>
             <Field data-invalid={!!form.formState.errors.date || undefined}>
-              <FieldLabel htmlFor="payment-date">Date</FieldLabel>
+              <FieldLabel htmlFor="refund-date">Date</FieldLabel>
               <Controller
                 control={form.control}
                 name="date"
                 render={({ field }) => (
                   <DatePicker
-                    id="payment-date"
+                    id="refund-date"
                     value={field.value}
                     onChange={field.onChange}
                   />
@@ -160,11 +160,11 @@ export function RecordPaymentDialog({
               <FieldError errors={[form.formState.errors.date]} />
             </Field>
             <Field data-invalid={!!form.formState.errors.note || undefined}>
-              <FieldLabel htmlFor="payment-note">Note (optional)</FieldLabel>
-              <Textarea id="payment-note" rows={3} {...form.register("note")} />
+              <FieldLabel htmlFor="refund-note">Note (optional)</FieldLabel>
+              <Textarea id="refund-note" rows={3} {...form.register("note")} />
               <FieldError errors={[form.formState.errors.note]} />
               <FieldDescription>
-                Notes are stored with the payment and cannot be edited later.
+                Refunds reduce the amount paid. Line items stay locked.
               </FieldDescription>
             </Field>
           </FieldGroup>
@@ -172,10 +172,10 @@ export function RecordPaymentDialog({
         <DialogFooter>
           <Button
             type="submit"
-            form="record-payment-form"
+            form="record-refund-form"
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "Recording…" : "Record payment"}
+            {mutation.isPending ? "Recording…" : "Record refund"}
           </Button>
         </DialogFooter>
       </DialogContent>

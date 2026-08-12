@@ -1,21 +1,30 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { PencilIcon, Trash2Icon, WalletIcon } from "lucide-react";
+import {
+  PencilIcon,
+  RotateCcwIcon,
+  Trash2Icon,
+  WalletIcon,
+} from "lucide-react";
 
 /**
- * Record payment / Edit / Delete actions for an order detail page.
+ * Record payment / refund / Edit / Delete actions for an order detail page.
  */
 export function OrderDetailActions({
   canRecordPayment,
+  canRecordRefund,
   canDelete,
   onRecordPayment,
+  onRecordRefund,
   onEdit,
   onDelete,
 }: {
   canRecordPayment: boolean;
+  canRecordRefund: boolean;
   canDelete: boolean;
   onRecordPayment: () => void;
+  onRecordRefund: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -25,6 +34,12 @@ export function OrderDetailActions({
         <Button type="button" onClick={onRecordPayment}>
           <WalletIcon />
           Record payment
+        </Button>
+      ) : null}
+      {canRecordRefund ? (
+        <Button type="button" variant="outline" onClick={onRecordRefund}>
+          <RotateCcwIcon />
+          Record refund
         </Button>
       ) : null}
       <Button type="button" variant="outline" onClick={onEdit}>

@@ -2,7 +2,9 @@ import { request } from "@/common/http";
 import type {
   CreateOrderBody,
   CreatePaymentBody,
+  CreateRefundBody,
   DeleteOrderResult,
+  ExportOrdersBody,
   OrderDetail,
   OrdersListParams,
   OrdersListResponse,
@@ -145,6 +147,53 @@ export const addOrderPayment = async (
       },
     });
     return response as OrderDetail;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+/**
+ * POST /api/orders/:id/refunds
+ * Sends `Idempotency-Key` when provided so retries do not double-refund.
+ */
+export const addOrderRefund = async (
+  orderId: string,
+  body: CreateRefundBody,
+  idempotencyKey: string,
+): Promise<OrderDetail> => {
+  try {
+    const response = await request({
+      method: "POST",
+      path: `orders/${orderId}/refunds`,
+      data: body,
+      fetchOptions: {
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+      },
+    });
+    return response as OrderDetail;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+/**
+ * POST /api/orders/export — orders-resolution-style CSV attachment as a Blob.
+ */
+export const exportOrdersCsv = async (
+  body: ExportOrdersBody,
+): Promise<Blob> => {
+  try {
+    const response = await request({
+      method: "POST",
+      path: "orders/export",
+      data: body,
+      asBlob: true,
+    });
+    return response as Blob;
   } catch (error) {
     console.error(error);
     throw error;

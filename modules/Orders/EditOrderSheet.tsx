@@ -3,10 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { DatePicker } from "@/common/components/shared/DatePicker/DatePicker";
-import { getErrorMessage } from "@/common/http";
 import { updateOrder } from "@/common/rest-api-calls/application/orders";
 import { toDateInputValue } from "@/common/utils/date";
 import type { OrderDetail, UpdateOrderBody } from "@/common/types/application/orders";
@@ -51,7 +49,7 @@ export function EditOrderSheet({
   onOpenChange: (open: boolean) => void;
   order: OrderDetail;
 }) {
-  const lineItemsLocked = order.amountPaid > 0;
+  const lineItemsLocked = order.payments.length > 0;
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
@@ -73,11 +71,7 @@ export function EditOrderSheet({
       void queryClient.invalidateQueries({
         queryKey: queries.orders.summary.queryKey,
       });
-      toast.success("Order updated");
       onOpenChange(false);
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error, "Could not update the order"));
     },
   });
 

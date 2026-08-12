@@ -12,12 +12,35 @@ export type OrderLineItem = {
   lineTotal: number;
 };
 
-/** Append-only payment on an order, amounts in dollars. */
+/** Cash-ledger row type. Amount is always positive dollars. */
+export type PaymentKind = "payment" | "refund";
+
+/** Audit actions written with every state-changing mutation. */
+export type OrderAuditAction =
+  | "order.created"
+  | "order.updated"
+  | "payment.recorded"
+  | "refund.recorded";
+
+/** Append-only payment or refund on an order, amounts in dollars. */
 export type OrderPayment = {
   _id: string;
+  kind: PaymentKind;
   amount: number;
   date: string;
   note?: string;
+  createdAt: string;
+};
+
+/** Append-only audit event on an order. */
+export type OrderAuditEvent = {
+  _id: string;
+  action: OrderAuditAction;
+  fromStatus?: OrderStatus;
+  toStatus: OrderStatus;
+  actorUserId: string;
+  note?: string;
+  metadata?: Record<string, unknown>;
   createdAt: string;
 };
 
@@ -33,12 +56,16 @@ export type OrderDetail = {
   amountDue: number;
   lineItems: OrderLineItem[];
   payments: OrderPayment[];
+  auditLog: OrderAuditEvent[];
   createdAt: string;
   updatedAt: string;
 };
 
-/** Dashboard list row — no line items or payments. */
-export type OrderListItem = Omit<OrderDetail, "lineItems" | "payments">;
+/** Dashboard list row — no line items, payments, or audit. */
+export type OrderListItem = Omit<
+  OrderDetail,
+  "lineItems" | "payments" | "auditLog"
+>;
 
 /** Query params for GET /orders. */
 export type OrdersListParams = {
@@ -86,6 +113,20 @@ export type CreatePaymentBody = {
   amount: number;
   date: string;
   note?: string;
+};
+
+/** POST /orders/:id/refunds body. */
+export type CreateRefundBody = {
+  amount: number;
+  date: string;
+  note?: string;
+};
+
+/** POST /orders/export body. */
+export type ExportOrdersBody = {
+  startDate: string;
+  endDate: string;
+  fileName?: string;
 };
 
 /** DELETE /orders/:id success payload. */

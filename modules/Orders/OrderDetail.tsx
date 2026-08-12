@@ -11,11 +11,13 @@ import { queries } from "@/lib/queries";
 import { BackToOrdersButton } from "@/modules/Orders/BackToOrdersButton";
 import { DeleteOrderDialog } from "@/modules/Orders/DeleteOrderDialog";
 import { EditOrderSheet } from "@/modules/Orders/EditOrderSheet";
+import { OrderAuditLogSection } from "@/modules/Orders/OrderAuditLogSection";
 import { OrderDetailActions } from "@/modules/Orders/OrderDetailActions";
 import { OrderDetailHeader } from "@/modules/Orders/OrderDetailHeader";
 import { OrderLineItemsSection } from "@/modules/Orders/OrderLineItemsSection";
 import { OrderPaymentsSection } from "@/modules/Orders/OrderPaymentsSection";
 import { RecordPaymentDialog } from "@/modules/Orders/RecordPaymentDialog";
+import { RecordRefundDialog } from "@/modules/Orders/RecordRefundDialog";
 import { CircleAlertIcon } from "lucide-react";
 
 /**
@@ -26,6 +28,8 @@ export function OrderDetail({ id }: { id: string }) {
   const [editKey, setEditKey] = useState(0);
   const [payOpen, setPayOpen] = useState(false);
   const [payKey, setPayKey] = useState(0);
+  const [refundOpen, setRefundOpen] = useState(false);
+  const [refundKey, setRefundKey] = useState(0);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const query = useQuery({
@@ -70,7 +74,8 @@ export function OrderDetail({ id }: { id: string }) {
 
   const order = query.data;
   const canRecordPayment = order.amountDue > 0;
-  const canDelete = order.amountPaid === 0;
+  const canRecordRefund = order.amountPaid > 0;
+  const canDelete = order.payments.length === 0;
 
   /**
    * Opens the edit sheet and remounts it so values match the latest order.
@@ -88,6 +93,14 @@ export function OrderDetail({ id }: { id: string }) {
     setPayOpen(true);
   };
 
+  /**
+   * Opens the refund dialog and remounts it so the amount defaults to amount paid.
+   */
+  const handleRefund = () => {
+    setRefundKey((current) => current + 1);
+    setRefundOpen(true);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -97,8 +110,10 @@ export function OrderDetail({ id }: { id: string }) {
         </div>
         <OrderDetailActions
           canRecordPayment={canRecordPayment}
+          canRecordRefund={canRecordRefund}
           canDelete={canDelete}
           onRecordPayment={handlePay}
+          onRecordRefund={handleRefund}
           onEdit={handleEdit}
           onDelete={() => {
             setDeleteOpen(true);
@@ -110,6 +125,7 @@ export function OrderDetail({ id }: { id: string }) {
         orderTotal={order.orderTotal}
       />
       <OrderPaymentsSection payments={order.payments} />
+      <OrderAuditLogSection auditLog={order.auditLog ?? []} />
       {editOpen ? (
         <EditOrderSheet
           key={editKey}
@@ -123,6 +139,14 @@ export function OrderDetail({ id }: { id: string }) {
           key={payKey}
           open={payOpen}
           onOpenChange={setPayOpen}
+          order={order}
+        />
+      ) : null}
+      {refundOpen ? (
+        <RecordRefundDialog
+          key={refundKey}
+          open={refundOpen}
+          onOpenChange={setRefundOpen}
           order={order}
         />
       ) : null}

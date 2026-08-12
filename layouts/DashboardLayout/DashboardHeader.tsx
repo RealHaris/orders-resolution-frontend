@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Separator } from "@/components/ui/separator";
+import { ModeToggle } from "@/components/mode-toggle";
 import { SidebarTriggerButton } from "@/layouts/DashboardLayout/SidebarTriggerButton";
 
 /**
@@ -23,7 +24,10 @@ export function DashboardHeader({
         />
         <div className="flex flex-1 items-center justify-between gap-2">
           <div className="text-base font-medium">{title}</div>
-          {actions}
+          <div className="flex items-center gap-1">
+            {actions}
+            <ModeToggle />
+          </div>
         </div>
       </div>
     </header>

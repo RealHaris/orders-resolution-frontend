@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Orders & Settlements UI
 
-## Getting Started
+Next.js dashboard for the Orders & Settlements API: create orders, record payments and refunds, and export CSV.
 
-First, run the development server:
+| | |
+|---|---|
+| **Frontend** | [https://my-frontend-flax.vercel.app](https://my-frontend-flax.vercel.app) |
+| **Backend API** | [https://orders-resolution-backend.onrender.com](https://orders-resolution-backend.onrender.com) |
+| **Health check** | [https://orders-resolution-backend.onrender.com/api/health](https://orders-resolution-backend.onrender.com/api/health) |
+| **Contact** | [hariskhan.mywork@gmail.com](mailto:hariskhan.mywork@gmail.com) |
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Local: UI **6010**, API **6011**. Product rules, status derivation, concurrency, and tradeoffs: [`orders-be/my-backend/README.md`](../../orders-be/my-backend/README.md).
+
+---
+
+## Environment variables
+
+Required in **both** apps so the deployed UI can talk to the API (cookies + CORS).
+
+### Frontend (`my-frontend/.env.local`, and Vercel env)
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `NEXT_PUBLIC_API_HOST` | Yes | API base including `/api`. Local: `http://localhost:6011/api`. Deployed: `https://orders-resolution-backend.onrender.com/api` |
+
+Copy from `.env.example`. On Vercel this must be `https://orders-resolution-backend.onrender.com/api`.
+
+### Backend (`my-backend/.env`, and Render env)
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `MONGODB_URI` | Yes | MongoDB connection string |
+| `JWT_SECRET_KEY` | Yes | Cookie JWT signing secret |
+| `CORS_ORIGINS` | Yes | Comma-separated UI origins. Must include `http://localhost:6010` and `https://my-frontend-flax.vercel.app` |
+| `PORT` | No | HTTP port (default **6011**) |
+| `NODE_ENV` | No | `development` / `test` / `production` |
+| `LOG_LEVEL` | No | Pino level (default `info`) |
+
+Production `CORS_ORIGINS` example:
+
+```
+CORS_ORIGINS=http://localhost:6010,https://my-frontend-flax.vercel.app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The browser sends the `accessToken` cookie with `credentials: "include"`, so `NEXT_PUBLIC_API_HOST` and `CORS_ORIGINS` must match the real UI and API origins.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Prerequisites
 
-## Learn More
+- **Node.js 20+** (Next.js 16)
+- **npm**
+- The API running locally (`http://localhost:6011`) **or** the deployed API above
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cd orders-fe/my-frontend
+cp .env.example .env.local
+```
 
-## Deploy on Vercel
+Set `NEXT_PUBLIC_API_HOST` (see [Environment variables](#environment-variables)).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm install
+npm run dev          # http://localhost:6010
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:6010](http://localhost:6010), sign up, create an order (2 × $500 = $1,000 is the sample), record payments/refunds, export CSV.
+
+To point the local UI at the deployed API:
+
+```
+NEXT_PUBLIC_API_HOST=https://orders-resolution-backend.onrender.com/api
+```
+
+Other scripts: `npm run build`, `npm start`, `npm run lint`.

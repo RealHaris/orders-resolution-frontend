@@ -24,12 +24,14 @@ import { getErrorMessage } from "@/common/http";
 import { useDebouncedValue } from "@/common/hooks/use-debounced-value";
 import type { OrderStatus } from "@/common/types/application/orders";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { queries } from "@/lib/queries";
 import { CreateOrderButton } from "@/modules/Orders/CreateOrderButton";
+import { ExportOrdersDialog } from "@/modules/Orders/ExportOrdersDialog";
 import { OrdersFilters } from "@/modules/Orders/OrdersFilters";
 import { OrdersSummaryStrip } from "@/modules/Orders/OrdersSummaryStrip";
 import type { PaginationState } from "@tanstack/react-table";
-import { CircleAlertIcon } from "lucide-react";
+import { CircleAlertIcon, DownloadIcon } from "lucide-react";
 
 /**
  * Dashboard island: summary cards, filters, and the paginated orders table.
@@ -42,6 +44,7 @@ export function OrdersDashboard() {
     search: parseAsString.withDefault(""),
   });
   const [searchInput, setSearchInput] = useState(filters.search);
+  const [exportOpen, setExportOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
   const trimmedSearch = debouncedSearch.trim();
   const searchParam =
@@ -111,7 +114,21 @@ export function OrdersDashboard() {
         <PageHeader
           title="Orders"
           description="Track status, amounts due, and payments."
-          actions={<CreateOrderButton />}
+          actions={
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setExportOpen(true);
+                }}
+              >
+                <DownloadIcon />
+                Export CSV
+              </Button>
+              <CreateOrderButton />
+            </>
+          }
         />
       </div>
       <OrdersSummaryStrip
@@ -155,6 +172,7 @@ export function OrdersDashboard() {
           }}
         />
       </div>
+      <ExportOrdersDialog open={exportOpen} onOpenChange={setExportOpen} />
     </div>
   );
 }

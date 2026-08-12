@@ -57,7 +57,7 @@ export function NavUser() {
               <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
             }
           >
-            <Avatar className="size-8 rounded-lg grayscale">
+            <Avatar className="size-8 rounded-lg">
               <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">

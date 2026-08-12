@@ -28,6 +28,26 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   overdue: "Overdue",
 };
 
+/** Human-readable labels for cash-ledger row kinds. */
+export const PAYMENT_KIND_LABEL: Record<"payment" | "refund", string> = {
+  payment: "Payment",
+  refund: "Refund",
+};
+
+/** Human-readable labels for audit actions. */
+export const AUDIT_ACTION_LABEL: Record<
+  | "order.created"
+  | "order.updated"
+  | "payment.recorded"
+  | "refund.recorded",
+  string
+> = {
+  "order.created": "Order created",
+  "order.updated": "Order updated",
+  "payment.recorded": "Payment recorded",
+  "refund.recorded": "Refund recorded",
+};
+
 /** Badge variant map for order statuses (shadcn Badge variants). */
 export const ORDER_STATUS_BADGE_VARIANT: Record<
   OrderStatus,
@@ -39,6 +59,16 @@ export const ORDER_STATUS_BADGE_VARIANT: Record<
   overdue: "destructive",
 };
 
+/**
+ * Extra classes so statuses stay distinct when light primary === secondary.
+ */
+export const ORDER_STATUS_BADGE_CLASS: Record<OrderStatus, string> = {
+  pending: "",
+  partially_paid: "bg-accent text-accent-foreground",
+  paid: "",
+  overdue: "",
+};
+
 /** Mirrors backend `ORDER_CONSTANTS` for client-side Zod limits. */
 export const ORDER_LIMITS = {
   MIN_LINE_ITEMS: 1,
@@ -48,6 +78,7 @@ export const ORDER_LIMITS = {
   MIN_UNIT_PRICE: 0.01,
   MAX_UNIT_PRICE: 1_000_000,
   MIN_PAYMENT_AMOUNT: 0.01,
+  MIN_REFUND_AMOUNT: 0.01,
   MAX_CUSTOMER_LENGTH: 200,
   MAX_DESCRIPTION_LENGTH: 500,
   MAX_NOTE_LENGTH: 500,

@@ -1,5 +1,11 @@
-import * as qs from "qs";
+import qs from "qs";
 
+import { toastError, toastSuccess } from "@/common/components/shared/ToastAlert/toast-alert";
+import {
+  API_ERROR_TOAST_FALLBACK,
+  API_NETWORK_ERROR_TOAST,
+  getApiSuccessToast,
+} from "@/common/constants/shared/toast";
 import { DEFAULT_API_HOST } from "@/common/constants/shared/constants";
 import type { HttpRequestOptions } from "./types";
 
@@ -131,7 +137,14 @@ const unwrapSuccessData = (json: unknown): unknown => {
 };
 
 /**
+ * True when an error toast would be noise (session probe).
+ */
+const shouldSkipErrorToast = (path: string, statusCode: number): boolean =>
+  path === "users/me" && statusCode === 401;
+
+/**
  * Shared fetch helper. Always sends cookies and unwraps `{ success, data }`.
+ * Non-GET successes and all errors (except session 401) show a bottom-right toast.
  */
 export const request = async (
   httpRequestOptions: HttpRequestOptions,
@@ -183,8 +196,9 @@ export const request = async (
   let response: Response;
   try {
     response = await fetch(url, fetchOptions);
-  } catch (networkError) {
-    throw networkError;
+  } catch {
+    toastError(API_NETWORK_ERROR_TOAST);
+    throw new Error(API_NETWORK_ERROR_TOAST);
   }
 
   if (!response.ok) {
@@ -197,8 +211,16 @@ export const request = async (
     const msg =
       (typeof errorBody?.msg === "string" ? errorBody.msg : undefined) ??
       response.statusText ??
-      "Request failed";
+      API_ERROR_TOAST_FALLBACK;
+    if (!shouldSkipErrorToast(path.split("?")[0] ?? path, response.status)) {
+      toastError(msg);
+    }
     throw new ApiError(msg, response.status, errorBody);
+  }
+
+  const successMessage = getApiSuccessToast(method, path.split("?")[0] ?? path);
+  if (successMessage) {
+    toastSuccess(successMessage);
   }
 
   if (asBlob) {

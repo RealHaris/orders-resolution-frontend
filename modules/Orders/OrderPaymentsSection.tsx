@@ -1,6 +1,8 @@
 import { DateText } from "@/common/components/shared/DateText/DateText";
 import { MoneyText } from "@/common/components/shared/MoneyText/MoneyText";
+import { PAYMENT_KIND_LABEL } from "@/common/constants/shared/orders";
 import type { OrderPayment } from "@/common/types/application/orders";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -20,7 +22,7 @@ export function OrderPaymentsSection({
 }) {
   return (
     <section className="flex flex-col gap-3">
-      <h3 className="text-base font-medium">Payments</h3>
+      <h3 className="text-base font-medium">Payments and refunds</h3>
       {payments.length === 0 ? (
         <p className="text-sm text-muted-foreground">No payments recorded yet.</p>
       ) : (
@@ -28,6 +30,7 @@ export function OrderPaymentsSection({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Type</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Note</TableHead>
@@ -37,6 +40,15 @@ export function OrderPaymentsSection({
             <TableBody>
               {payments.map((payment) => (
                 <TableRow key={payment._id}>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        payment.kind === "refund" ? "destructive" : "default"
+                      }
+                    >
+                      {PAYMENT_KIND_LABEL[payment.kind ?? "payment"]}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <DateText iso={payment.date} />
                   </TableCell>

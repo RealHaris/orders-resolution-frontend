@@ -115,7 +115,7 @@ export function SignupForm() {
             </Field>
             {formError ? <FieldError>{formError}</FieldError> : null}
             <Field>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button type="submit" className="w-full" disabled={mutation.isPending}>
                 {mutation.isPending ? "Creating account…" : "Sign up"}
               </Button>
               <FieldDescription className="text-center">

@@ -3,11 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { DatePicker } from "@/common/components/shared/DatePicker/DatePicker";
 import { DEFAULT_DUE_DATE_OFFSET_DAYS } from "@/common/constants/shared/orders";
-import { getErrorMessage } from "@/common/http";
 import { createOrder } from "@/common/rest-api-calls/application/orders";
 import { utcDateInputFromToday } from "@/common/utils/date";
 import { Button } from "@/components/ui/button";
@@ -56,12 +54,8 @@ export function CreateOrderSheet({
   const mutation = useMutation({
     mutationFn: createOrder,
     onSuccess: async () => {
-      toast.success("Order created");
       onOpenChange(false);
       await invalidateOrdersListAndSummary();
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error, "Could not create the order"));
     },
   });
 
