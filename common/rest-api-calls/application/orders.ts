@@ -181,7 +181,7 @@ export const addOrderRefund = async (
 };
 
 /**
- * POST /api/orders/export — orders-resolution-style CSV attachment as a Blob.
+ * POST /api/orders/export
  */
 export const exportOrdersCsv = async (
   body: ExportOrdersBody,

@@ -57,7 +57,7 @@ The browser sends the `accessToken` cookie with `credentials: "include"`, so `NE
 ## Setup
 
 ```bash
-cd orders-fe/my-frontend
+cd orders-resolutions
 cp .env.example .env.local
 ```
 
