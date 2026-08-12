@@ -40,7 +40,7 @@ export function OrdersFilters({
         onChange={(event) => {
           onSearchChange(event.target.value);
         }}
-        placeholder="Search customers (3+ characters)"
+        placeholder="Search customers"
         className="max-w-sm"
         aria-label="Search customers"
       />

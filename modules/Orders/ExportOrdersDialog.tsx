@@ -2,10 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { DatePicker } from "@/common/components/shared/DatePicker/DatePicker";
+import { DateRangePicker } from "@/common/components/shared/DateRangePicker/DateRangePicker";
 import { exportOrdersCsv } from "@/common/rest-api-calls/application/orders";
 import { todayUtcDateInput } from "@/common/utils/date";
 import { Button } from "@/components/ui/button";
@@ -85,6 +85,9 @@ export function ExportOrdersDialog({
     mutation.mutate(values);
   });
 
+  const startDate = form.watch("startDate");
+  const endDate = form.watch("endDate");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -96,34 +99,26 @@ export function ExportOrdersDialog({
         </DialogHeader>
         <form id="export-orders-form" onSubmit={onSubmit}>
           <FieldGroup>
-            <Field data-invalid={!!form.formState.errors.startDate || undefined}>
-              <FieldLabel htmlFor="export-start">Start date</FieldLabel>
-              <Controller
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <DatePicker
-                    id="export-start"
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                )}
+            <Field
+              data-invalid={
+                !!form.formState.errors.startDate ||
+                !!form.formState.errors.endDate ||
+                undefined
+              }
+            >
+              <FieldLabel htmlFor="export-date-range">Date range</FieldLabel>
+              <DateRangePicker
+                id="export-date-range"
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={(v) =>
+                  form.setValue("startDate", v, { shouldValidate: true })
+                }
+                onEndDateChange={(v) =>
+                  form.setValue("endDate", v, { shouldValidate: true })
+                }
               />
               <FieldError errors={[form.formState.errors.startDate]} />
-            </Field>
-            <Field data-invalid={!!form.formState.errors.endDate || undefined}>
-              <FieldLabel htmlFor="export-end">End date</FieldLabel>
-              <Controller
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <DatePicker
-                    id="export-end"
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
               <FieldError errors={[form.formState.errors.endDate]} />
             </Field>
           </FieldGroup>

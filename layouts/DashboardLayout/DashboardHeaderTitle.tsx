@@ -17,7 +17,7 @@ import {
  */
 export function DashboardHeaderTitle() {
   const pathname = usePathname();
-  const isDetail = pathname.startsWith("/dashboard/orders/");
+  const isDetail = pathname !== "/orders" && pathname.startsWith("/orders/");
 
   if (!isDetail) {
     return <span>Orders</span>;
@@ -27,7 +27,7 @@ export function DashboardHeaderTitle() {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink render={<Link href="/dashboard" />}>
+          <BreadcrumbLink render={<Link href="/orders" />}>
             Orders
           </BreadcrumbLink>
         </BreadcrumbItem>

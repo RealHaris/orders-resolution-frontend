@@ -13,7 +13,7 @@ export function BackToOrdersButton() {
       variant="ghost"
       size="sm"
       nativeButton={false}
-      render={<Link href="/dashboard" />}
+      render={<Link href="/orders" />}
     >
       <ArrowLeftIcon />
       Back to orders

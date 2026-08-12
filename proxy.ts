@@ -4,9 +4,9 @@ import { ACCESS_TOKEN_COOKIE } from "@/common/constants/shared/constants";
 
 /**
  * Request interceptor and auth route guard for Next.js 16.
- * - Redirects root (/) to /dashboard if logged in, or /login if not logged in.
- * - Protects /dashboard and subroutes by redirecting unauthenticated users to /login.
- * - Prevents authenticated users from accessing /login or /signup by redirecting to /dashboard.
+ * - Redirects root (/) to /orders if logged in, or /login if not logged in.
+ * - Protects /orders and subroutes by redirecting unauthenticated users to /login.
+ * - Prevents authenticated users from accessing /login or /signup by redirecting to /orders.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -14,17 +14,17 @@ export function proxy(request: NextRequest) {
 
   if (pathname === "/") {
     if (hasAccessToken) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/orders", request.url));
     }
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (pathname.startsWith("/dashboard") && !hasAccessToken) {
+  if (pathname.startsWith("/orders") && !hasAccessToken) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if ((pathname === "/login" || pathname === "/signup") && hasAccessToken) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/orders", request.url));
   }
 
   return NextResponse.next();

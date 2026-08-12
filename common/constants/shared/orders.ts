@@ -7,7 +7,7 @@ export const ORDERS_PAGE_SIZE = 20;
 export const ORDERS_PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 
 /** Minimum characters before customer search is sent to the API. */
-export const SEARCH_MIN_CHARS = 3;
+export const SEARCH_MIN_CHARS = 2;
 
 /** Debounce delay for the dashboard search input. */
 export const SEARCH_DEBOUNCE_MS = 500;

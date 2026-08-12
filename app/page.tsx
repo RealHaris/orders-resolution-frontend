@@ -9,7 +9,7 @@ import { ACCESS_TOKEN_COOKIE } from "@/common/constants/shared/constants";
 export default async function Home() {
   const cookieStore = await cookies();
   if (cookieStore.has(ACCESS_TOKEN_COOKIE)) {
-    redirect("/dashboard");
+    redirect("/orders");
   }
   redirect("/login");
 }

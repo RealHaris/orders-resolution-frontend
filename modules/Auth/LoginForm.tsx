@@ -67,7 +67,7 @@ export function LoginForm() {
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
-      const token = data.token || data.accessToken;
+      const token = data.accessToken;
       if (token) {
         localStorage.setItem("accessToken", token);
         const isHttps =
@@ -78,7 +78,7 @@ export function LoginForm() {
       }
       userStore.update.user(data.user);
       queryClient.setQueryData(queries.users.me.queryKey, data.user);
-      window.location.href = "/dashboard";
+      window.location.href = "/orders";
     },
     onError: (error) => {
       setFormError(getErrorMessage(error, "Invalid email or password"));

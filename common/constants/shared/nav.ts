@@ -1,7 +1,7 @@
 /** Primary sidebar destination for the orders app. */
 export const NAV_DASHBOARD = {
-  title: "Dashboard",
-  url: "/dashboard",
+  title: "Orders",
+  url: "/orders",
 } as const;
 
 /** Brand label shown in the sidebar header. */

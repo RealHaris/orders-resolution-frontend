@@ -168,7 +168,7 @@ export function OrdersDashboard() {
           emptyMessage={emptyMessage}
           getRowId={(row) => row._id}
           onRowClick={(row) => {
-            router.push(`/dashboard/orders/${row._id}`);
+            router.push(`/orders/${row._id}`);
           }}
         />
       </div>

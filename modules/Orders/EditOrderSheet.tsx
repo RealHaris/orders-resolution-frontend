@@ -103,7 +103,7 @@ export function EditOrderSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-xl">
+      <SheetContent side="right" className="sm:max-w-3xl">
         <SheetHeader>
           <SheetTitle>Edit order</SheetTitle>
           <SheetDescription>

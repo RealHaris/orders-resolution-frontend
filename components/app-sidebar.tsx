@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboardIcon } from "lucide-react";
 
 import { APP_NAME, NAV_DASHBOARD } from "@/common/constants/shared/nav";
 import { NavMain } from "@/components/nav-main";
-import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -17,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 
 /**
- * Slim sidebar: brand, dashboard nav, and the signed-in user.
+ * Slim sidebar: brand and quick-create only. Profile lives in the top bar.
  */
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -35,19 +32,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain
-          items={[
-            {
-              title: NAV_DASHBOARD.title,
-              url: NAV_DASHBOARD.url,
-              icon: <LayoutDashboardIcon />,
-            },
-          ]}
-        />
+        <NavMain items={[]} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
     </Sidebar>
   );
 }

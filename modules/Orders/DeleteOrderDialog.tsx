@@ -25,7 +25,7 @@ export function DeleteOrderDialog({
     onSuccess: async () => {
       onOpenChange(false);
       await invalidateOrdersListAndSummary();
-      router.push("/dashboard");
+      router.push("/orders");
     },
   });
 

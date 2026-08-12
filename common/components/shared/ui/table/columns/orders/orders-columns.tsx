@@ -50,7 +50,7 @@ export const getOrdersColumns = () => [
         variant="outline"
         size="sm"
         nativeButton={false}
-        render={<Link href={`/dashboard/orders/${row.original._id}`} />}
+        render={<Link href={`/orders/${row.original._id}`} />}
       >
         View
       </Button>
