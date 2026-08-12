@@ -161,11 +161,25 @@ export const request = async (
     arrayFormat: "repeat" as const,
   };
 
+  let token: string | null = null;
+  if (typeof window !== "undefined") {
+    token = localStorage.getItem("accessToken");
+    if (!token) {
+      const match = document.cookie.match(/(?:^|; )accessToken=([^;]*)/);
+      if (match) {
+        token = decodeURIComponent(match[1]);
+      }
+    }
+  }
+
+  const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
   fetchOptions = {
     ...fetchOptions,
     method,
     credentials: "include",
     headers: {
+      ...authHeader,
       ...fetchOptions?.headers,
     },
   };
@@ -183,7 +197,7 @@ export const request = async (
     fetchOptions = {
       ...fetchOptions,
       headers: {
-        ...fetchOptions.headers,
+        ...fetchOptions?.headers,
         ...(serialized.contentType && {
           "Content-Type": serialized.contentType,
         }),

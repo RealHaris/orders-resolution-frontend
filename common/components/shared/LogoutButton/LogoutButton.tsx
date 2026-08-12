@@ -16,6 +16,9 @@ export async function performLogout(): Promise<void> {
   } catch {
     // Cookie is cleared server-side even if the request fails; continue locally.
   }
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("accessToken");
+  }
   document.cookie = `${ACCESS_TOKEN_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
   userStore.update.user(undefined);
   queryClient.clear();

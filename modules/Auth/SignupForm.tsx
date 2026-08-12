@@ -69,7 +69,12 @@ export function SignupForm() {
     onSuccess: (data) => {
       const token = data.token || data.accessToken;
       if (token) {
-        document.cookie = `${ACCESS_TOKEN_COOKIE}=${token}; path=/; max-age=2592000; SameSite=Lax`;
+        localStorage.setItem("accessToken", token);
+        const isHttps =
+          typeof window !== "undefined" && window.location.protocol === "https:";
+        document.cookie = `${ACCESS_TOKEN_COOKIE}=${token}; path=/; max-age=2592000; SameSite=Lax${
+          isHttps ? "; Secure" : ""
+        }`;
       }
       userStore.update.user(data.user);
       queryClient.setQueryData(queries.users.me.queryKey, data.user);
