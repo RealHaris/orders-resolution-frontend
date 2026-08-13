@@ -4,5 +4,5 @@ export const NAV_DASHBOARD = {
   url: "/orders",
 } as const;
 
-/** Brand label shown in the sidebar header. */
-export const APP_NAME = "Orders";
+/** Brand label shown in the auth page header. */
+export const APP_NAME = "Orders Resolution";
