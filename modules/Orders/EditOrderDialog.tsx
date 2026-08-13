@@ -10,6 +10,14 @@ import { toDateInputValue } from "@/common/utils/date";
 import type { OrderDetail, UpdateOrderBody } from "@/common/types/application/orders";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Field,
   FieldDescription,
   FieldError,
@@ -17,14 +25,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { LineItemsEditor } from "@/modules/Orders/LineItemsEditor";
 import {
   patchOrderInLists,
@@ -32,15 +32,18 @@ import {
 } from "@/modules/Orders/order-cache";
 import {
   orderFormSchema,
+  toOrderLineItemsInput,
   type OrderFormValues,
 } from "@/modules/Orders/order-form-schema";
 import { queryClient } from "@/lib/query-client";
 import { queries } from "@/lib/queries";
 
 /**
- * Edit-order sheet. Line items lock after the first payment.
+ * Edit-order dialog. Line items lock after the first payment. The body
+ * scrolls vertically when there are many line items; header and footer stay
+ * fixed.
  */
-export function EditOrderSheet({
+export function EditOrderDialog({
   open,
   onOpenChange,
   order,
@@ -52,13 +55,14 @@ export function EditOrderSheet({
   const lineItemsLocked = order.payments.length > 0;
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
+    mode: "onChange",
     defaultValues: {
       customer: order.customer,
       dueDate: toDateInputValue(order.dueDate),
       lineItems: order.lineItems.map((item) => ({
         description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
+        quantity: String(item.quantity),
+        unitPrice: String(item.unitPrice),
       })),
     },
   });
@@ -88,7 +92,7 @@ export function EditOrderSheet({
       body.dueDate = values.dueDate;
     }
     if (!lineItemsLocked && dirty.lineItems) {
-      body.lineItems = values.lineItems;
+      body.lineItems = toOrderLineItemsInput(values.lineItems);
     }
     if (
       body.customer === undefined &&
@@ -102,27 +106,35 @@ export function EditOrderSheet({
   });
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-3xl">
-        <SheetHeader>
-          <SheetTitle>Edit order</SheetTitle>
-          <SheetDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="grid-rows-[auto_minmax(0,1fr)_auto] max-h-[75dvh] sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit order</DialogTitle>
+          <DialogDescription>
             Customer and due date can always be changed.
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
         <form
           id="edit-order-form"
           onSubmit={onSubmit}
-          className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
+          className="flex min-h-0 flex-col gap-4"
         >
-          <FieldGroup>
+          <FieldGroup className="flex-1 min-h-0">
             <Field data-invalid={!!form.formState.errors.customer || undefined}>
-              <FieldLabel htmlFor="edit-customer">Customer</FieldLabel>
-              <Input id="edit-customer" {...form.register("customer")} />
+              <FieldLabel htmlFor="edit-customer" required>
+                Customer
+              </FieldLabel>
+              <Input
+                id="edit-customer"
+                placeholder="Customer name"
+                {...form.register("customer")}
+              />
               <FieldError errors={[form.formState.errors.customer]} />
             </Field>
             <Field data-invalid={!!form.formState.errors.dueDate || undefined}>
-              <FieldLabel htmlFor="edit-due-date">Due date</FieldLabel>
+              <FieldLabel htmlFor="edit-due-date" required>
+                Due date
+              </FieldLabel>
               <Controller
                 control={form.control}
                 name="dueDate"
@@ -149,16 +161,16 @@ export function EditOrderSheet({
             )}
           </FieldGroup>
         </form>
-        <SheetFooter>
+        <DialogFooter>
           <Button
             type="submit"
             form="edit-order-form"
-            disabled={mutation.isPending}
+            disabled={mutation.isPending || !form.formState.isValid}
           >
             {mutation.isPending ? "Saving…" : "Save changes"}
           </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

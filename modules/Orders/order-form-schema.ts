@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { ORDER_LIMITS } from "@/common/constants/shared/orders";
+import type { OrderLineItemInput } from "@/common/types/application/orders";
 
 const lineItemSchema = z.object({
   description: z
@@ -12,24 +13,40 @@ const lineItemSchema = z.object({
       `Description must be at most ${ORDER_LIMITS.MAX_DESCRIPTION_LENGTH} characters`,
     ),
   quantity: z
-    .number({ error: "Quantity must be a number" })
-    .int("Quantity must be a whole number")
-    .min(ORDER_LIMITS.MIN_QUANTITY, "Quantity must be at least 1")
-    .max(
-      ORDER_LIMITS.MAX_QUANTITY,
+    .string()
+    .trim()
+    .min(1, "Quantity is required")
+    .refine((value) => /^\d+$/.test(value), "Quantity must be a whole number")
+    .refine(
+      (value) => Number(value) >= ORDER_LIMITS.MIN_QUANTITY,
+      "Quantity must be at least 1",
+    )
+    .refine(
+      (value) => Number(value) <= ORDER_LIMITS.MAX_QUANTITY,
       `Quantity must be at most ${ORDER_LIMITS.MAX_QUANTITY}`,
     ),
   unitPrice: z
-    .number({ error: "Unit price must be a number" })
-    .min(ORDER_LIMITS.MIN_UNIT_PRICE, "Unit price must be at least $0.01")
-    .max(
-      ORDER_LIMITS.MAX_UNIT_PRICE,
+    .string()
+    .trim()
+    .min(1, "Unit price is required")
+    .refine(
+      (value) => /^\d+(\.\d{0,2})?$/.test(value),
+      "Unit price must be a number",
+    )
+    .refine(
+      (value) => Number(value) >= ORDER_LIMITS.MIN_UNIT_PRICE,
+      "Unit price must be at least $0.01",
+    )
+    .refine(
+      (value) => Number(value) <= ORDER_LIMITS.MAX_UNIT_PRICE,
       `Unit price must be at most ${ORDER_LIMITS.MAX_UNIT_PRICE}`,
     ),
 });
 
 /**
- * Zod schema for create and edit order forms.
+ * Zod schema for create and edit order forms. Quantity and unit price are
+ * kept as strings in the form so users can clear them; the API body is
+ * converted to numbers via `toOrderLineItemsInput`.
  */
 export const orderFormSchema = z.object({
   customer: z
@@ -52,9 +69,22 @@ export const orderFormSchema = z.object({
 
 export type OrderFormValues = z.infer<typeof orderFormSchema>;
 
-/** Empty line used when adding a row. */
+/** Empty line used when adding a row. Unit price defaults to 1, quantity blank. */
 export const emptyLineItem: OrderFormValues["lineItems"][number] = {
   description: "",
-  quantity: 1,
-  unitPrice: 0.01,
+  quantity: "",
+  unitPrice: "1",
 };
+
+/**
+ * Converts form line items (string quantity/unit price) into the numeric
+ * API body shape.
+ */
+export const toOrderLineItemsInput = (
+  lineItems: OrderFormValues["lineItems"],
+): OrderLineItemInput[] =>
+  lineItems.map((item) => ({
+    description: item.description,
+    quantity: Number(item.quantity),
+    unitPrice: Number(item.unitPrice),
+  }));

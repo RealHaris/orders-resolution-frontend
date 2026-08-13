@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSnapshot } from "valtio";
 
+import orderHeaderStore from "@/common/stores/application/order-header-store";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,10 +19,11 @@ import {
  */
 export function DashboardHeaderTitle() {
   const pathname = usePathname();
+  const { customer } = useSnapshot(orderHeaderStore);
   const isDetail = pathname !== "/orders" && pathname.startsWith("/orders/");
 
   if (!isDetail) {
-    return <span>Orders</span>;
+    return <span>Orders Resolution</span>;
   }
 
   return (
@@ -33,7 +36,9 @@ export function DashboardHeaderTitle() {
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbPage>Order</BreadcrumbPage>
+          <BreadcrumbPage>
+            {customer ? `${customer}'s orders` : "Order"}
+          </BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>

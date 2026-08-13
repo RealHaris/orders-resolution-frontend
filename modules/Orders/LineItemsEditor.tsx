@@ -21,7 +21,8 @@ import { LineItemsEditorRow } from "@/modules/Orders/LineItemsEditorRow";
 import { PlusIcon } from "lucide-react";
 
 /**
- * Add/remove line-item rows with a live order-total preview.
+ * Add/remove line-item rows with a live order-total preview. Only the list of
+ * rows scrolls; the Add line / Preview total row stays fixed at the bottom.
  */
 export function LineItemsEditor({
   control,
@@ -46,25 +47,28 @@ export function LineItemsEditor({
   );
 
   return (
-    <div className="flex flex-col gap-3">
-      {fields.map((field, index) => (
-        <LineItemsEditorRow
-          key={field.id}
-          index={index}
-          control={control}
-          register={register}
-          disabled={disabled}
-          canRemove={fields.length > 1}
-          onRemove={() => {
-            remove(index);
-          }}
-          errors={
-            errors && typeof errors === "object" && index in errors
-              ? errors[index]
-              : undefined
-          }
-        />
-      ))}
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {/* Scrollable list of line items */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+        {fields.map((field, index) => (
+          <LineItemsEditorRow
+            key={field.id}
+            index={index}
+            control={control}
+            register={register}
+            disabled={disabled}
+            canRemove={fields.length > 1}
+            onRemove={() => {
+              remove(index);
+            }}
+            errors={
+              errors && typeof errors === "object" && index in errors
+                ? errors[index]
+                : undefined
+            }
+          />
+        ))}
+      </div>
       {errors && "message" in errors && typeof errors.message === "string" ? (
         <FieldError>{errors.message}</FieldError>
       ) : errors && "root" in errors && errors.root?.message ? (

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react";
 
-import { CreateOrderSheet } from "@/modules/Orders/CreateOrderSheet";
+import { CreateOrderDialog } from "@/modules/Orders/CreateOrderDialog";
 
 type CreateOrderSheetContextValue = {
   open: boolean;
@@ -38,7 +38,7 @@ export function CreateOrderSheetProvider({
       value={{ open, setOpen: handleOpenChange }}
     >
       {children}
-      <CreateOrderSheet
+      <CreateOrderDialog
         key={sheetKey}
         open={open}
         onOpenChange={handleOpenChange}

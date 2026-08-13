@@ -40,6 +40,7 @@ export function OrdersDashboard() {
   const router = useRouter();
   const [filters, setFilters] = useQueryStates({
     page: parseAsInteger.withDefault(1),
+    pageSize: parseAsInteger.withDefault(ORDERS_PAGE_SIZE),
     status: parseAsStringLiteral(ORDER_STATUSES),
     search: parseAsString.withDefault(""),
   });
@@ -60,7 +61,7 @@ export function OrdersDashboard() {
 
   const listParams = {
     pageNum: filters.page,
-    pageSize: ORDERS_PAGE_SIZE,
+    pageSize: filters.pageSize,
     ...(filters.status ? { status: filters.status } : {}),
     ...(searchParam ? { search: searchParam } : {}),
   };
@@ -78,10 +79,13 @@ export function OrdersDashboard() {
   const pageIndex = Math.max(0, filters.page - 1);
 
   /**
-   * Syncs DataTable pagination with the URL `page` param.
+   * Syncs DataTable pagination (page and page size) with URL params.
    */
   const handlePaginationChange = (state: PaginationState) => {
-    void setFilters({ page: state.pageIndex + 1 });
+    void setFilters({
+      page: state.pageIndex + 1,
+      pageSize: state.pageSize,
+    });
   };
 
   /**
@@ -112,7 +116,7 @@ export function OrdersDashboard() {
     <div className="flex flex-col gap-4">
       <div className="px-4 lg:px-6">
         <PageHeader
-          title="Orders"
+          title="Orders Resolution"
           description="Track status, amounts due, and payments."
           actions={
             <>
@@ -162,7 +166,7 @@ export function OrdersDashboard() {
           manualPagination
           pageIndex={pageIndex}
           pageCount={totalPages}
-          pageSize={ORDERS_PAGE_SIZE}
+          pageSize={filters.pageSize}
           onPaginationChange={handlePaginationChange}
           isLoading={listQuery.isLoading}
           emptyMessage={emptyMessage}

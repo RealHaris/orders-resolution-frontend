@@ -2,13 +2,21 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { DatePicker } from "@/common/components/shared/DatePicker/DatePicker";
-import { DEFAULT_DUE_DATE_OFFSET_DAYS } from "@/common/constants/shared/orders";
 import { createOrder } from "@/common/rest-api-calls/application/orders";
-import { utcDateInputFromToday } from "@/common/utils/date";
+import { todayUtcDateInput } from "@/common/utils/date";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Field,
   FieldError,
@@ -16,26 +24,21 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { LineItemsEditor } from "@/modules/Orders/LineItemsEditor";
 import { invalidateOrdersListAndSummary } from "@/modules/Orders/order-cache";
 import {
   emptyLineItem,
   orderFormSchema,
+  toOrderLineItemsInput,
   type OrderFormValues,
 } from "@/modules/Orders/order-form-schema";
 
 /**
- * Create-order sheet. Remount with a new `key` when opened so the form resets.
+ * Create-order dialog. Remount with a new `key` when opened so the form resets.
+ * The body scrolls vertically when there are many line items; header and
+ * footer stay fixed.
  */
-export function CreateOrderSheet({
+export function CreateOrderDialog({
   open,
   onOpenChange,
 }: {
@@ -44,12 +47,16 @@ export function CreateOrderSheet({
 }) {
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
+    mode: "onChange",
     defaultValues: {
       customer: "",
-      dueDate: utcDateInputFromToday(DEFAULT_DUE_DATE_OFFSET_DAYS),
+      dueDate: todayUtcDateInput(),
       lineItems: [emptyLineItem],
     },
   });
+
+  const dueDate = useWatch({ control: form.control, name: "dueDate" });
+  const isOverdueOrder = !!dueDate && dueDate > todayUtcDateInput();
 
   const mutation = useMutation({
     mutationFn: createOrder,
@@ -63,31 +70,43 @@ export function CreateOrderSheet({
    * Submits a new order to POST /api/orders.
    */
   const onSubmit = form.handleSubmit((values) => {
-    mutation.mutate(values);
+    mutation.mutate({
+      customer: values.customer,
+      dueDate: values.dueDate,
+      lineItems: toOrderLineItemsInput(values.lineItems),
+    });
   });
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-3xl">
-        <SheetHeader>
-          <SheetTitle>Create order</SheetTitle>
-          <SheetDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="grid-rows-[auto_minmax(0,1fr)_auto] max-h-[85dvh] sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Create order</DialogTitle>
+          <DialogDescription>
             Add a customer, due date, and at least one line item.
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
         <form
           id="create-order-form"
           onSubmit={onSubmit}
-          className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
+          className="flex min-h-0 flex-col gap-4"
         >
-          <FieldGroup>
+          <FieldGroup className="flex-1 min-h-0">
             <Field data-invalid={!!form.formState.errors.customer || undefined}>
-              <FieldLabel htmlFor="create-customer">Customer</FieldLabel>
-              <Input id="create-customer" {...form.register("customer")} />
+              <FieldLabel htmlFor="create-customer" required>
+                Customer
+              </FieldLabel>
+              <Input
+                id="create-customer"
+                placeholder="Customer name"
+                {...form.register("customer")}
+              />
               <FieldError errors={[form.formState.errors.customer]} />
             </Field>
             <Field data-invalid={!!form.formState.errors.dueDate || undefined}>
-              <FieldLabel htmlFor="create-due-date">Due date</FieldLabel>
+              <FieldLabel htmlFor="create-due-date" required>
+                Due date
+              </FieldLabel>
               <Controller
                 control={form.control}
                 name="dueDate"
@@ -108,16 +127,21 @@ export function CreateOrderSheet({
             />
           </FieldGroup>
         </form>
-        <SheetFooter>
-          <Button
-            type="submit"
-            form="create-order-form"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending ? "Creating…" : "Create order"}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        <DialogFooter>
+          <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+            {isOverdueOrder ? (
+              <Badge variant="destructive">Overdue order</Badge>
+            ) : null}
+            <Button
+              type="submit"
+              form="create-order-form"
+              disabled={mutation.isPending || !form.formState.isValid}
+            >
+              {mutation.isPending ? "Creating…" : "Create order"}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
