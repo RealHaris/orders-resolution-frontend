@@ -78,7 +78,7 @@ export function SignupForm() {
       }
       userStore.update.user(data.user);
       queryClient.setQueryData(queries.users.me.queryKey, data.user);
-      window.location.href = "/orders";
+      router.push("/orders");
     },
     onError: (error) => {
       setFormError(getErrorMessage(error, "Could not create your account"));
@@ -128,7 +128,7 @@ export function SignupForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (

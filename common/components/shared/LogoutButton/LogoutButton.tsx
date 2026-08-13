@@ -34,6 +34,7 @@ export function LogoutButton({
   className?: string;
   children?: React.ReactNode;
 }) {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
   /**
@@ -45,7 +46,7 @@ export function LogoutButton({
     }
     setIsPending(true);
     await performLogout();
-    window.location.href = "/login";
+    router.push("/login");
   };
 
   return (
