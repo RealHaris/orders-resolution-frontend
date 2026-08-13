@@ -1,4 +1,5 @@
 import { MoneyText } from "@/common/components/shared/MoneyText/MoneyText";
+import { TruncatedText } from "@/common/components/shared/TruncatedText/TruncatedText";
 import type { OrderLineItem } from "@/common/types/application/orders";
 import {
   Table,
@@ -27,7 +28,7 @@ export function OrderLineItemsSection({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Description</TableHead>
+              <TableHead className="w-64">Description</TableHead>
               <TableHead className="text-right">Qty</TableHead>
               <TableHead className="text-right">Unit price</TableHead>
               <TableHead className="text-right">Line total</TableHead>
@@ -36,7 +37,9 @@ export function OrderLineItemsSection({
           <TableBody>
             {lineItems.map((item) => (
               <TableRow key={item._id}>
-                <TableCell>{item.description}</TableCell>
+                <TableCell>
+                  <TruncatedText text={item.description} />
+                </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {item.quantity}
                 </TableCell>

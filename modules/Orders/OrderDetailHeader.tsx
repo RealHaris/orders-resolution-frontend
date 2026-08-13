@@ -2,14 +2,16 @@ import { DateText } from "@/common/components/shared/DateText/DateText";
 import { MoneyText } from "@/common/components/shared/MoneyText/MoneyText";
 import { StatusBadge } from "@/common/components/shared/StatusBadge/StatusBadge";
 import type { OrderDetail } from "@/common/types/application/orders";
+import { BackToOrdersButton } from "@/modules/Orders/BackToOrdersButton";
 
 /**
- * Customer, status, due date, and money summary. Server Component.
+ * Back navigation, customer, status, due date, and money summary. Server Component.
  */
 export function OrderDetailHeader({ order }: { order: OrderDetail }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
+        <BackToOrdersButton />
         <h2 className="text-xl font-semibold">{order.customer}</h2>
         <StatusBadge status={order.status} />
       </div>

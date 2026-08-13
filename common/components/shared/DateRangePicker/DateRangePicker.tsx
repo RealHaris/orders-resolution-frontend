@@ -21,6 +21,10 @@ import {
  * A date-range picker that stores start / end as `YYYY-MM-DD` strings.
  * Renders a two-month calendar inside a Popover so the user picks both
  * dates in one step instead of two separate pickers.
+ *
+ * Selection is staged in a local draft and only committed to the parent
+ * when the user clicks "Apply". "Cancel" (or dismissing the popover by
+ * clicking outside / pressing Escape) discards the draft.
  */
 export function DateRangePicker({
   id,
@@ -38,6 +42,22 @@ export function DateRangePicker({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  // In-progress selection while the popover is open. Not committed until Apply.
+  const [draftRange, setDraftRange] = useState<DateRange>(() => ({
+    from: parseDateInput(startDate),
+    to: parseDateInput(endDate),
+  }));
+
+  // Whenever the popover opens, start from the currently committed dates.
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setDraftRange({
+        from: parseDateInput(startDate),
+        to: parseDateInput(endDate),
+      });
+    }
+    setOpen(nextOpen);
+  };
 
   const range: DateRange = {
     from: parseDateInput(startDate),
@@ -51,25 +71,25 @@ export function DateRangePicker({
         ? format(range.from, "MMM d, yyyy")
         : "Pick a date range";
 
+  const canApply = Boolean(draftRange.from && draftRange.to);
+
   const handleSelect = (selected: DateRange | undefined) => {
-    const from = selected?.from
-      ? toDateInputValueFromDate(selected.from)
-      : "";
-    const to = selected?.to
-      ? toDateInputValueFromDate(selected.to)
-      : "";
+    setDraftRange(selected ?? { from: undefined });
+  };
 
-    onStartDateChange(from);
-    onEndDateChange(to);
+  const handleApply = () => {
+    if (!draftRange.from || !draftRange.to) return;
+    onStartDateChange(toDateInputValueFromDate(draftRange.from));
+    onEndDateChange(toDateInputValueFromDate(draftRange.to));
+    setOpen(false);
+  };
 
-    // Close only once both ends are chosen
-    if (selected?.from && selected?.to) {
-      setOpen(false);
-    }
+  const handleCancel = () => {
+    setOpen(false);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
         render={
           <Button
@@ -88,10 +108,18 @@ export function DateRangePicker({
         <Calendar
           mode="range"
           defaultMonth={range.from}
-          selected={range}
+          selected={draftRange}
           onSelect={handleSelect}
           numberOfMonths={2}
         />
+        <div className="flex items-center justify-end gap-2 border-t p-2">
+          <Button type="button" variant="ghost" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleApply} disabled={!canApply}>
+            Apply
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

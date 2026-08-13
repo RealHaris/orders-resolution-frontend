@@ -5,18 +5,18 @@ import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 /**
- * Navigates back to the orders dashboard.
+ * Navigates back to the orders dashboard. Compact icon-only button.
  */
 export function BackToOrdersButton() {
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon-sm"
       nativeButton={false}
       render={<Link href="/orders" />}
+      aria-label="Back to orders"
     >
       <ArrowLeftIcon />
-      Back to orders
     </Button>
   );
 }

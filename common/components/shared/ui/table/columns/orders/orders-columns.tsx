@@ -20,25 +20,27 @@ export const getOrdersColumns = () => [
   }),
   columnHelper.accessor("status", {
     header: "Status",
+    meta: { align: "center" },
     cell: ({ getValue }) => <StatusBadge status={getValue()} />,
   }),
   columnHelper.accessor("orderTotal", {
     header: "Order total",
-    meta: { align: "right" },
+    meta: { align: "center" },
     cell: ({ getValue }) => <MoneyText amount={getValue()} />,
   }),
   columnHelper.accessor("amountPaid", {
     header: "Amount paid",
-    meta: { align: "right" },
+    meta: { align: "center" },
     cell: ({ getValue }) => <MoneyText amount={getValue()} />,
   }),
   columnHelper.accessor("amountDue", {
     header: "Amount due",
-    meta: { align: "right" },
+    meta: { align: "center" },
     cell: ({ getValue }) => <MoneyText amount={getValue()} />,
   }),
   columnHelper.accessor("dueDate", {
     header: "Due date",
+    meta: { align: "center" },
     cell: ({ getValue }) => <DateText iso={getValue()} />,
   }),
   columnHelper.display({

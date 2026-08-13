@@ -2,12 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { DateRangePicker } from "@/common/components/shared/DateRangePicker/DateRangePicker";
+import { EXPORT_DEFAULT_RANGE_DAYS } from "@/common/constants/shared/orders";
 import { exportOrdersCsv } from "@/common/rest-api-calls/application/orders";
-import { todayUtcDateInput } from "@/common/utils/date";
+import {
+  todayUtcDateInput,
+  utcDateInputFromToday,
+} from "@/common/utils/date";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -63,7 +67,7 @@ export function ExportOrdersDialog({
   const form = useForm<ExportFormValues>({
     resolver: zodResolver(exportFormSchema),
     defaultValues: {
-      startDate: todayUtcDateInput(),
+      startDate: utcDateInputFromToday(-EXPORT_DEFAULT_RANGE_DAYS),
       endDate: todayUtcDateInput(),
     },
   });
@@ -85,8 +89,8 @@ export function ExportOrdersDialog({
     mutation.mutate(values);
   });
 
-  const startDate = form.watch("startDate");
-  const endDate = form.watch("endDate");
+  const startDate = useWatch({ control: form.control, name: "startDate" });
+  const endDate = useWatch({ control: form.control, name: "endDate" });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

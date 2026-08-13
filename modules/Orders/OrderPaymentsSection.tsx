@@ -1,5 +1,6 @@
 import { DateText } from "@/common/components/shared/DateText/DateText";
 import { MoneyText } from "@/common/components/shared/MoneyText/MoneyText";
+import { TruncatedText } from "@/common/components/shared/TruncatedText/TruncatedText";
 import { PAYMENT_KIND_LABEL } from "@/common/constants/shared/orders";
 import type { OrderPayment } from "@/common/types/application/orders";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +34,7 @@ export function OrderPaymentsSection({
                 <TableHead>Type</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Note</TableHead>
+                <TableHead className="w-64">Note</TableHead>
                 <TableHead>Recorded at</TableHead>
               </TableRow>
             </TableHeader>
@@ -55,7 +56,13 @@ export function OrderPaymentsSection({
                   <TableCell className="text-right">
                     <MoneyText amount={payment.amount} />
                   </TableCell>
-                  <TableCell>{payment.note || "—"}</TableCell>
+                  <TableCell>
+                    {payment.note ? (
+                      <TruncatedText text={payment.note} />
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
                   <TableCell>
                     <DateText iso={payment.createdAt} />
                   </TableCell>

@@ -3,11 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { DatePicker } from "@/common/components/shared/DatePicker/DatePicker";
+import { CharacterCounter } from "@/common/components/shared/CharacterCounter/CharacterCounter";
 import { MoneyText } from "@/common/components/shared/MoneyText/MoneyText";
 import { ApiError } from "@/common/http";
+import { ORDER_LIMITS } from "@/common/constants/shared/orders";
 import { addOrderRefund } from "@/common/rest-api-calls/application/orders";
 import type { OrderDetail } from "@/common/types/application/orders";
 import { todayUtcDateInput } from "@/common/utils/date";
@@ -29,7 +31,12 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupPrefix } from "@/components/ui/input-group";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  blockNonNumericKey,
+  insertNumericPaste,
+} from "@/modules/Orders/numeric-input-helpers";
 import { queryClient } from "@/lib/query-client";
 import { queries } from "@/lib/queries";
 import {
@@ -60,11 +67,13 @@ export function RecordRefundDialog({
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
-      amount: order.amountPaid,
+      amount: String(order.amountPaid),
       date: todayUtcDateInput(),
       note: "",
     },
   });
+
+  const note = useWatch({ control: form.control, name: "note" });
 
   const mutation = useMutation({
     mutationFn: ({
@@ -77,7 +86,7 @@ export function RecordRefundDialog({
       addOrderRefund(
         order._id,
         {
-          amount: values.amount,
+          amount: Number(values.amount),
           date: values.date,
           note: values.note?.trim() ? values.note.trim() : undefined,
         },
@@ -124,28 +133,51 @@ export function RecordRefundDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="grid-rows-[auto_minmax(0,1fr)_auto] max-h-[85dvh] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Record refund</DialogTitle>
           <DialogDescription>
             Maximum allowed: <MoneyText amount={order.amountPaid} />
           </DialogDescription>
         </DialogHeader>
-        <form id="record-refund-form" onSubmit={onSubmit}>
-          <FieldGroup>
+        <form
+          id="record-refund-form"
+          onSubmit={onSubmit}
+          className="flex min-h-0 flex-col gap-4"
+        >
+          <FieldGroup className="flex-1 min-h-0 overflow-y-auto px-1">
             <Field data-invalid={!!form.formState.errors.amount || undefined}>
-              <FieldLabel htmlFor="refund-amount">Amount</FieldLabel>
-              <Input
-                id="refund-amount"
-                type="number"
-                min={0.01}
-                step={0.01}
-                {...form.register("amount", { valueAsNumber: true })}
-              />
+              <FieldLabel htmlFor="refund-amount" required>
+                Amount
+              </FieldLabel>
+              <InputGroup>
+                <InputGroupPrefix>$</InputGroupPrefix>
+                <Controller
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <Input
+                      id="refund-amount"
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      className="pl-6"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onKeyDown={(event) => blockNonNumericKey(event, true)}
+                      onPaste={(event) =>
+                        insertNumericPaste(event, field.onChange, true)
+                      }
+                    />
+                  )}
+                />
+              </InputGroup>
               <FieldError errors={[form.formState.errors.amount]} />
             </Field>
             <Field data-invalid={!!form.formState.errors.date || undefined}>
-              <FieldLabel htmlFor="refund-date">Date</FieldLabel>
+              <FieldLabel htmlFor="refund-date" required>
+                Date
+              </FieldLabel>
               <Controller
                 control={form.control}
                 name="date"
@@ -163,6 +195,10 @@ export function RecordRefundDialog({
               <FieldLabel htmlFor="refund-note">Note (optional)</FieldLabel>
               <Textarea id="refund-note" rows={3} {...form.register("note")} />
               <FieldError errors={[form.formState.errors.note]} />
+              <CharacterCounter
+                value={note ?? ""}
+                max={ORDER_LIMITS.MAX_NOTE_LENGTH}
+              />
               <FieldDescription>
                 Refunds reduce the amount paid. Line items stay locked.
               </FieldDescription>

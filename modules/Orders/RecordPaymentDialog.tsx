@@ -3,11 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { DatePicker } from "@/common/components/shared/DatePicker/DatePicker";
+import { CharacterCounter } from "@/common/components/shared/CharacterCounter/CharacterCounter";
 import { MoneyText } from "@/common/components/shared/MoneyText/MoneyText";
 import { ApiError } from "@/common/http";
+import { ORDER_LIMITS } from "@/common/constants/shared/orders";
 import { addOrderPayment } from "@/common/rest-api-calls/application/orders";
 import type { OrderDetail } from "@/common/types/application/orders";
 import { formatUsd } from "@/common/utils/money";
@@ -29,7 +31,12 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupPrefix } from "@/components/ui/input-group";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  blockNonNumericKey,
+  insertNumericPaste,
+} from "@/modules/Orders/numeric-input-helpers";
 import {
   patchOrderInLists,
   setOrderDetailCache,
@@ -60,11 +67,13 @@ export function RecordPaymentDialog({
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
-      amount: order.amountDue,
+      amount: String(order.amountDue),
       date: todayUtcDateInput(),
       note: "",
     },
   });
+
+  const note = useWatch({ control: form.control, name: "note" });
 
   const mutation = useMutation({
     mutationFn: ({
@@ -77,7 +86,7 @@ export function RecordPaymentDialog({
       addOrderPayment(
         order._id,
         {
-          amount: values.amount,
+          amount: Number(values.amount),
           date: values.date,
           note: values.note?.trim() ? values.note.trim() : undefined,
         },
@@ -124,28 +133,51 @@ export function RecordPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="grid-rows-[auto_minmax(0,1fr)_auto] max-h-[85dvh]">
         <DialogHeader>
           <DialogTitle>Record payment</DialogTitle>
           <DialogDescription>
             Maximum allowed: <MoneyText amount={order.amountDue} />
           </DialogDescription>
         </DialogHeader>
-        <form id="record-payment-form" onSubmit={onSubmit}>
-          <FieldGroup>
+        <form
+          id="record-payment-form"
+          onSubmit={onSubmit}
+          className="flex min-h-0 flex-col gap-4"
+        >
+          <FieldGroup className="flex-1 min-h-0 overflow-y-auto">
             <Field data-invalid={!!form.formState.errors.amount || undefined}>
-              <FieldLabel htmlFor="payment-amount">Amount</FieldLabel>
-              <Input
-                id="payment-amount"
-                type="number"
-                min={0.01}
-                step={0.01}
-                {...form.register("amount", { valueAsNumber: true })}
-              />
+              <FieldLabel htmlFor="payment-amount" required>
+                Amount
+              </FieldLabel>
+              <InputGroup>
+                <InputGroupPrefix>$</InputGroupPrefix>
+                <Controller
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <Input
+                      id="payment-amount"
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      className="pl-6"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onKeyDown={(event) => blockNonNumericKey(event, true)}
+                      onPaste={(event) =>
+                        insertNumericPaste(event, field.onChange, true)
+                      }
+                    />
+                  )}
+                />
+              </InputGroup>
               <FieldError errors={[form.formState.errors.amount]} />
             </Field>
             <Field data-invalid={!!form.formState.errors.date || undefined}>
-              <FieldLabel htmlFor="payment-date">Date</FieldLabel>
+              <FieldLabel htmlFor="payment-date" required>
+                Date
+              </FieldLabel>
               <Controller
                 control={form.control}
                 name="date"
@@ -163,6 +195,10 @@ export function RecordPaymentDialog({
               <FieldLabel htmlFor="payment-note">Note (optional)</FieldLabel>
               <Textarea id="payment-note" rows={3} {...form.register("note")} />
               <FieldError errors={[form.formState.errors.note]} />
+              <CharacterCounter
+                value={note ?? ""}
+                max={ORDER_LIMITS.MAX_NOTE_LENGTH}
+              />
               <FieldDescription>
                 Notes are stored with the payment and cannot be edited later.
               </FieldDescription>

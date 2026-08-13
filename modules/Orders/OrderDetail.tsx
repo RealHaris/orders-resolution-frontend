@@ -1,8 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import orderHeaderStore from "@/common/stores/application/order-header-store";
 import { EmptyState } from "@/common/components/shared/EmptyState/EmptyState";
 import { ApiError, getErrorMessage } from "@/common/http";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { queries } from "@/lib/queries";
 import { BackToOrdersButton } from "@/modules/Orders/BackToOrdersButton";
 import { DeleteOrderDialog } from "@/modules/Orders/DeleteOrderDialog";
-import { EditOrderSheet } from "@/modules/Orders/EditOrderSheet";
+import { EditOrderDialog } from "@/modules/Orders/EditOrderDialog";
 import { OrderAuditLogSection } from "@/modules/Orders/OrderAuditLogSection";
 import { OrderDetailActions } from "@/modules/Orders/OrderDetailActions";
 import { OrderDetailHeader } from "@/modules/Orders/OrderDetailHeader";
@@ -36,6 +37,15 @@ export function OrderDetail({ id }: { id: string }) {
     ...queries.orders.detail(id),
     enabled: Boolean(id),
   });
+
+  /**
+   * Publishes the customer name to the header breadcrumb
+   * ("Orders / <customer>'s orders") and clears it on unmount.
+   */
+  useEffect(() => {
+    orderHeaderStore.update.customer(query.data?.customer);
+    return () => orderHeaderStore.update.customer(undefined);
+  }, [query.data?.customer]);
 
   if (query.isLoading) {
     return (
@@ -104,10 +114,7 @@ export function OrderDetail({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-3">
-          <BackToOrdersButton />
-          <OrderDetailHeader order={order} />
-        </div>
+        <OrderDetailHeader order={order} />
         <OrderDetailActions
           canRecordPayment={canRecordPayment}
           canRecordRefund={canRecordRefund}
@@ -127,7 +134,7 @@ export function OrderDetail({ id }: { id: string }) {
       <OrderPaymentsSection payments={order.payments} />
       <OrderAuditLogSection auditLog={order.auditLog ?? []} />
       {editOpen ? (
-        <EditOrderSheet
+        <EditOrderDialog
           key={editKey}
           open={editOpen}
           onOpenChange={setEditOpen}

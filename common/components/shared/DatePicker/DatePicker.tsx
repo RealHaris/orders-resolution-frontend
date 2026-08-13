@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  formatDateInput,
   parseDateInput,
   toDateInputValueFromDate,
 } from "@/common/utils/date";
@@ -47,7 +48,7 @@ export function DatePicker({
         }
       >
         <CalendarIcon className="size-4 text-muted-foreground" />
-        {value || placeholder}
+        {value ? formatDateInput(value) : placeholder}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
