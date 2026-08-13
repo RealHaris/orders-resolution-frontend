@@ -39,7 +39,6 @@ export type OrderAuditEvent = {
   fromStatus?: OrderStatus;
   toStatus: OrderStatus;
   actorUserId: string;
-  note?: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
 };

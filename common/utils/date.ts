@@ -45,6 +45,21 @@ export const utcDateInputFromToday = (days: number): string => {
 };
 
 /**
+ * Formats a `YYYY-MM-DD` input value for display, e.g. `2026-08-20` → `20 August 2026`.
+ */
+export const formatDateInput = (value: string): string => {
+  const date = parseDateInput(value);
+  if (!date) {
+    return value;
+  }
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+};
+
+/**
  * Parses a `YYYY-MM-DD` string into a local Date at midnight (for calendars).
  */
 export const parseDateInput = (value: string): Date | undefined => {

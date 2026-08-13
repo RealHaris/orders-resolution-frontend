@@ -84,5 +84,5 @@ export const ORDER_LIMITS = {
   MAX_NOTE_LENGTH: 500,
 } as const;
 
-/** Default due-date offset (days from today UTC) for new orders. */
-export const DEFAULT_DUE_DATE_OFFSET_DAYS = 7;
+/** Default export date-range span (days back from today UTC) for CSV export. */
+export const EXPORT_DEFAULT_RANGE_DAYS = 60;
