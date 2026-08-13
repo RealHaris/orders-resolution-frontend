@@ -44,7 +44,7 @@ import {
   setOrderDetailCache,
 } from "@/modules/Orders/order-cache";
 import {
-  paymentFormSchema,
+  createPaymentFormSchema,
   type PaymentFormValues,
 } from "@/modules/Orders/payment-form-schema";
 
@@ -65,7 +65,13 @@ export function RecordRefundDialog({
     payload: string;
   } | null>(null);
   const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentFormSchema),
+    resolver: zodResolver(
+      createPaymentFormSchema(
+        order.amountPaid,
+        `Refund exceeds the amount paid. Maximum allowed: ${formatUsd(order.amountPaid)}`,
+      ),
+    ),
+    mode: "onChange",
     defaultValues: {
       amount: String(order.amountPaid),
       date: todayUtcDateInput(),
@@ -103,7 +109,7 @@ export function RecordRefundDialog({
     onError: (error) => {
       if (error instanceof ApiError && error.maxAllowedAmount !== undefined) {
         form.setError("amount", {
-          message: `${error.msg} Maximum allowed: ${formatUsd(error.maxAllowedAmount)}.`,
+          message: error.msg,
         });
       }
     },
@@ -209,7 +215,7 @@ export function RecordRefundDialog({
           <Button
             type="submit"
             form="record-refund-form"
-            disabled={mutation.isPending}
+            disabled={mutation.isPending || !form.formState.isValid}
           >
             {mutation.isPending ? "Recording…" : "Record refund"}
           </Button>

@@ -12,8 +12,8 @@ import { ApiError } from "@/common/http";
 import { ORDER_LIMITS } from "@/common/constants/shared/orders";
 import { addOrderPayment } from "@/common/rest-api-calls/application/orders";
 import type { OrderDetail } from "@/common/types/application/orders";
-import { formatUsd } from "@/common/utils/money";
 import { todayUtcDateInput } from "@/common/utils/date";
+import { formatUsd } from "@/common/utils/money";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -42,7 +42,7 @@ import {
   setOrderDetailCache,
 } from "@/modules/Orders/order-cache";
 import {
-  paymentFormSchema,
+  createPaymentFormSchema,
   type PaymentFormValues,
 } from "@/modules/Orders/payment-form-schema";
 import { queryClient } from "@/lib/query-client";
@@ -65,7 +65,13 @@ export function RecordPaymentDialog({
     payload: string;
   } | null>(null);
   const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentFormSchema),
+    resolver: zodResolver(
+      createPaymentFormSchema(
+        order.amountDue,
+        `Payment exceeds the remaining balance. Maximum allowed: ${formatUsd(order.amountDue)}`,
+      ),
+    ),
+    mode: "onChange",
     defaultValues: {
       amount: String(order.amountDue),
       date: todayUtcDateInput(),
@@ -103,7 +109,7 @@ export function RecordPaymentDialog({
     onError: (error) => {
       if (error instanceof ApiError && error.maxAllowedAmount !== undefined) {
         form.setError("amount", {
-          message: `${error.msg} Maximum allowed: ${formatUsd(error.maxAllowedAmount)}.`,
+          message: error.msg,
         });
       }
     },
@@ -145,7 +151,7 @@ export function RecordPaymentDialog({
           onSubmit={onSubmit}
           className="flex min-h-0 flex-col gap-4"
         >
-          <FieldGroup className="flex-1 min-h-0 overflow-y-auto">
+          <FieldGroup className="flex-1 min-h-0 overflow-y-auto px-1">
             <Field data-invalid={!!form.formState.errors.amount || undefined}>
               <FieldLabel htmlFor="payment-amount" required>
                 Amount
@@ -209,7 +215,7 @@ export function RecordPaymentDialog({
           <Button
             type="submit"
             form="record-payment-form"
-            disabled={mutation.isPending}
+            disabled={mutation.isPending || !form.formState.isValid}
           >
             {mutation.isPending ? "Recording…" : "Record payment"}
           </Button>

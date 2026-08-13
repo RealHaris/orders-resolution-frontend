@@ -56,7 +56,7 @@ export function CreateOrderDialog({
   });
 
   const dueDate = useWatch({ control: form.control, name: "dueDate" });
-  const isOverdueOrder = !!dueDate && dueDate > todayUtcDateInput();
+  const isOverdueOrder = !!dueDate && dueDate < todayUtcDateInput();
 
   const mutation = useMutation({
     mutationFn: createOrder,

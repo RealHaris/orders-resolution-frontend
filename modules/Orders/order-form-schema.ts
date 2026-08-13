@@ -29,9 +29,14 @@ const lineItemSchema = z.object({
     .string()
     .trim()
     .min(1, "Unit price is required")
+    // Lenient on purpose: `.5` and `12.` are valid mid-typing values.
     .refine(
-      (value) => /^\d+(\.\d{0,2})?$/.test(value),
+      (value) => /^\d*\.?\d*$/.test(value),
       "Unit price must be a number",
+    )
+    .refine(
+      (value) => (value.split(".")[1] ?? "").length <= 2,
+      "Unit price can have at most 2 decimal places",
     )
     .refine(
       (value) => Number(value) >= ORDER_LIMITS.MIN_UNIT_PRICE,
